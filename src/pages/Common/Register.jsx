@@ -5,26 +5,58 @@ import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const schema = z.object({
-  username: z
-    .string()
-    .min(3, { message: "Username must be atleast 3 characters long."})
-    .regex(/^[a-zA-Z0-9]+$/, { message: "Username should be only characters and numbers"}),
-  email: z
-    .string()
-    .email({ message: "Please provide a valid email address"}),
-  password: z
-    .string()
-    .min(8, { message: "Password must be atleast 8 characters long"})
-    .regex(/[a-z]/, {message: "Password must contain at least one lowercase letter"})
-    .regex(/[A-Z]/, {message: "Password must contain at least one uppercase letter"})
-    .regex(/[0-9]/, {message: "Password must contain at least one number"})
-})
 
+const schema = z
+  .object({
+    username: z
+      .string()
+      .min(3, { message: "Username must be at least 3 characters long." })
+      .regex(/^[a-zA-Z0-9]+$/, { message: "Username should only contain letters and numbers" }),
+    email: z
+      .string()
+      .email({ message: "Please provide a valid email address" }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters long" })
+      .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+      .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+      .regex(/[0-9]/, { message: "Password must contain at least one number" }),
+    confirmPassword: z.string({ required_error: "Confirm password is required" }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        path: ["confirmPassword"],
+        message: "Passwords must match",
+        code: "custom",
+      });
+    }
+  });
 
 
 function Register() {
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  const { register, handleSubmit, formState: {errors, isSubmitting}, clearErrors} = useForm({
+    resolver: zodResolver(schema)
+  })
+
+  const onSubmit = async(data)=>{
+    console.log(data)
+    const { username, email, password } = data;
+    localStorage.setItem('registeredEmail', email)
+    try {
+      await axiosInstance.post('/register/', { username, email, password });
+      navigate('/otp_verification')
+      toast.info('An OTP has sent to your registered email.')
+
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || 'Registration failed'
+      toast.error(errorMessage)
+    }
+  }
+
 
 
   return (
@@ -43,29 +75,40 @@ function Register() {
               {/* <p className="text-gray-500">Sign up and get 30 day free trial</p> */}
             </div>
 
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
               <div className="space-y-2">
-                <label className="text-sm text-gray-600">Full name</label>
+                <label className="text-sm text-gray-600">Username</label>
                 <input
+                  {...register("username")}
                   type="text"
-                  placeholder="Amélie Laurent"
+                  placeholder="Enter your username"
                   className="w-full px-4 py-2 rounded-full border border-gray-200"
                 />
+                {
+                  errors.username &&
+                  <span className='text-red-400'>{errors.username.message}</span>
+                }
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm text-gray-600">Email</label>
                 <input
-                  type="email"
-                  placeholder="amélielaurent7622@gmail.com"
+                  {...register("email")}
+                  type=""
+                  placeholder="email"
                   className="w-full px-4 py-2 rounded-full border border-gray-200"
                 />
+                {
+                  errors.email &&
+                  <span className='text-red-400'>{errors.email.message}</span>
+                }
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm text-gray-600">Password</label>
                 <div className="relative">
                   <input
+                    {...register("password")}
                     type={showPassword ? "text" : "password"}
                     className="w-full px-4 py-2 rounded-full border border-gray-200 pr-10"
                   />
@@ -77,6 +120,32 @@ function Register() {
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
+                {
+                  errors.password &&
+                  <span className='text-red-400'>{errors.password.message}</span>
+                }
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm text-gray-600">Confirm Password</label>
+                <div className="relative">
+                  <input
+                    {...register("confirmPassword")}
+                    type={showConfirmPassword ? "text" : "password"}
+                    className="w-full px-4 py-2 rounded-full border border-gray-200 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                {
+                  errors.confirmPassword &&
+                  <span className='text-red-400'>{errors.confirmPassword.message}</span>
+                }
               </div>
 
               <button className="w-full py-2 px-4 rounded-full bg-amber-200 hover:bg-[#FFD147]/90 text-white">
