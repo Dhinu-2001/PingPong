@@ -1,7 +1,7 @@
-import { store } from '@/redux/Store';
+import { store } from '../redux/Store';
 import { jwtDecode } from 'jwt-decode';
-import axiosInstance from "@/axio  sconfig"
-import { setAuthData } from '@/redux/auth/authSlice';
+import userAxiosInstance from '../Axios/UserAxios';
+import { setAuthData } from '../redux/auth/AuthSlice';
 
 // Regular utility functions for encryption/decryption
 export const encryptToken = (token) => {
@@ -45,7 +45,7 @@ export const refreshAccessToken = async (refreshToken) => {
   console.log('refreshToken before sending refreshing access', refreshToken)
 
   try {
-    const response = await axiosInstance.post('/token_refresh/', { refresh_token: refreshToken }, {
+    const response = await userAxiosInstance.post('/token_refresh/', { refresh_token: refreshToken }, {
       headers: {
         'Content-Type': 'application/json'
       }

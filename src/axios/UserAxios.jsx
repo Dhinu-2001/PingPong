@@ -1,9 +1,9 @@
 import axios from "axios";
 import Cookies from 'js-cookie'
-import { store } from "./redux/Store";
-import { decryptToken, isTokenExpired, refreshAccessToken, } from './utils/tokenUtil'
-
-import { handleLogout } from "./utils/StateUtil";
+import { store } from "../redux/Store";
+import { decryptToken, isTokenExpired, refreshAccessToken, } from '../utils/TokenUtils'
+import { toast } from "sonner";
+// import { handleLogout } from "../utils/TokenUtils";
 // import { env } from "@/utils/env";
 // import { getConfig } from './config';
 // let { VITE_gateway_svc } = getConfig();
@@ -11,12 +11,12 @@ import { handleLogout } from "./utils/StateUtil";
 const env = import.meta.env;
 const baseUrl = env.VITE_baseURL
 
-const axiosInstance = axios.create({
+const userAxiosInstance = axios.create({
   baseURL: baseUrl,
   withCredentials: true,
 });
 
-axiosInstance.interceptors.request.use(
+userAxiosInstance.interceptors.request.use(
   config => {
     const state = store.getState()
     const accessTokenFromState = state.accessToken
@@ -46,7 +46,7 @@ axiosInstance.interceptors.request.use(
 );
 
 
-axiosInstance.interceptors.response.use(
+userAxiosInstance.interceptors.response.use(
   response => response,
   async (error) => {
     const originalRequest = error.config;
@@ -75,25 +75,26 @@ axiosInstance.interceptors.response.use(
             console.log('Access token refreshed successfully. Retrying the original request.');
             originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
 
-            return axiosInstance(originalRequest);
+            return userAxiosInstance(originalRequest);
           }
           else {
             console.error('Failed to refresh access token. Logging out.');
-            await handleLogout();
-            // window.location.href = '/login';
+            toast.warning('token refresh failed')
+            // await handleLogout();
             return Promise.reject(error);
           }
         } catch (refreshError) {
           console.error('Error during token refresh:', refreshError);
-          await handleLogout();
+          toast.warning('token refresh failed')
+          // await handleLogout();
           return Promise.reject(refreshError);
         }
 
       }
       else {
         console.warn('No access token found or token is not valid. Logging out.');
-        await handleLogout();
-        // window.location.href = '/login';
+        toast.warning('token refresh failed')
+        // await handleLogout();
         console.warn('No access token found or token is not valid. Logging out.');
         return Promise.reject(error);
       }
@@ -103,4 +104,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance
+export default userAxiosInstance

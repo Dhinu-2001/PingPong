@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import userAxiosInstance from '../../Axios/UserAxios'; 
 
 const schema = z
   .object({
@@ -47,9 +47,9 @@ function Register() {
     const { username, email, password } = data;
     localStorage.setItem('registeredEmail', email)
     try {
-      await axiosInstance.post('/register/', { username, email, password });
-      navigate('/otp_verification')
-      toast.info('An OTP has sent to your registered email.')
+      await userAxiosInstance.post('/register/', { username, email, password });
+      // navigate('/otp_verification')
+      // toast.info('An OTP has sent to your registered email.')
 
     } catch (error) {
       const errorMessage = error.response?.data?.error || 'Registration failed'
@@ -60,8 +60,8 @@ function Register() {
 
 
   return (
-    <div className='bg-amber-100 w-screen min-h-screen flex'>
-      <div className="w-full lg:w-[45%] p-8 lg:p-12 flex flex-col bg-gray-50">
+    <div className='bg-gradient-to-tl from-[#fbffac] to-[#ffff] w-screen min-h-screen flex'>
+      <div className="w-full lg:w-[45%] p-8 lg:p-12 flex flex-col">
         <div className="max-w-md w-full mx-auto">
           {/* Logo */}
           <div className="mb-8">
@@ -82,7 +82,7 @@ function Register() {
                   {...register("username")}
                   type="text"
                   placeholder="Enter your username"
-                  className="w-full px-4 py-2 rounded-full border border-gray-200"
+                  className="w-full px-4 py-2 rounded-full border border-gray-200 bg-white"
                 />
                 {
                   errors.username &&
@@ -96,7 +96,7 @@ function Register() {
                   {...register("email")}
                   type=""
                   placeholder="email"
-                  className="w-full px-4 py-2 rounded-full border border-gray-200"
+                  className="w-full px-4 py-2 rounded-full border border-gray-200 bg-white"
                 />
                 {
                   errors.email &&
@@ -110,12 +110,12 @@ function Register() {
                   <input
                     {...register("password")}
                     type={showPassword ? "text" : "password"}
-                    className="w-full px-4 py-2 rounded-full border border-gray-200 pr-10"
+                    className="w-full px-4 py-2 rounded-full border border-gray-200 pr-10 bg-white"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 "
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -132,7 +132,7 @@ function Register() {
                   <input
                     {...register("confirmPassword")}
                     type={showConfirmPassword ? "text" : "password"}
-                    className="w-full px-4 py-2 rounded-full border border-gray-200 pr-10"
+                    className="w-full px-4 py-2 rounded-full border border-gray-200 pr-10 bg-white"
                   />
                   <button
                     type="button"
@@ -148,7 +148,7 @@ function Register() {
                 }
               </div>
 
-              <button className="w-full py-2 px-4 rounded-full bg-amber-200 hover:bg-[#FFD147]/90 text-white">
+              <button className="w-full py-2 px-4 rounded-full bg-[#f7f478] hover:bg-[#fffd7d] text-black">
                 Submit
               </button>
 
@@ -184,6 +184,28 @@ function Register() {
           </div>
         </div>
       </div>
+
+      <div className="hidden lg:block lg:w-[55%] p-5">
+        <video
+          src="/public/loginVideo2.mp4"
+          alt="Platform preview showing calendar and team collaboration"    
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="object-cover rounded-lg w-full h-full "
+        />
+      </div>
+
+      {/* Close Button */}
+      {/* <button
+        className="absolute top-4 right-4 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white/90 transition-colors"
+        aria-label="Close"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      </button> */}
 
     </div>
   )
