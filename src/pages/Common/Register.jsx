@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod";
 import userAxiosInstance from '../../Axios/UserAxios'; 
+import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner';
 
 const schema = z
   .object({
@@ -37,6 +39,7 @@ const schema = z
 function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const navigate = useNavigate()
 
   const { register, handleSubmit, formState: {errors, isSubmitting}, clearErrors} = useForm({
     resolver: zodResolver(schema)
@@ -48,8 +51,8 @@ function Register() {
     localStorage.setItem('registeredEmail', email)
     try {
       await userAxiosInstance.post('/register/', { username, email, password });
-      // navigate('/otp_verification')
-      // toast.info('An OTP has sent to your registered email.')
+      navigate('/otp_verification')
+      toast.info('An OTP has sent to your registered email.')
 
     } catch (error) {
       const errorMessage = error.response?.data?.error || 'Registration failed'
@@ -95,7 +98,7 @@ function Register() {
                 <input
                   {...register("email")}
                   type=""
-                  placeholder="email"
+                  placeholder="Enter your email"
                   className="w-full px-4 py-2 rounded-full border border-gray-200 bg-white"
                 />
                 {
@@ -109,6 +112,7 @@ function Register() {
                 <div className="relative">
                   <input
                     {...register("password")}
+                    placeholder='Enter your password'
                     type={showPassword ? "text" : "password"}
                     className="w-full px-4 py-2 rounded-full border border-gray-200 pr-10 bg-white"
                   />
@@ -131,6 +135,7 @@ function Register() {
                 <div className="relative">
                   <input
                     {...register("confirmPassword")}
+                    placeholder='Re-enter your password'
                     type={showConfirmPassword ? "text" : "password"}
                     className="w-full px-4 py-2 rounded-full border border-gray-200 pr-10 bg-white"
                   />
@@ -173,9 +178,9 @@ function Register() {
             <div className="flex justify-between text-sm">
               <p className="text-gray-600">
                 Have any account?
-                <a href="#" className="text-blue-600 ml-1 hover:underline">
+                <Link to="/login" className="text-blue-600 ml-1 hover:underline">
                   Sign in
-                </a>
+                </Link>
               </p>
               <a href="#" className="text-gray-600 hover:underline">
                 Terms & Conditions
