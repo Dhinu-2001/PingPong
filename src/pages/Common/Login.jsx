@@ -5,10 +5,19 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import userAxiosInstance from "../../Axios/UserAxios";
-import { Link } from 'react-router-dom'
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 const schema = z.object({
-  email: z.string().email({ message: "Please provide a valid email address" }),
+  email: z
+      .string()
+      .email({ message: "Please provide a valid email address" }),
+  // username: z
+  //   .string()
+  //   .min(3, { message: "Username must be at least 3 characters long." })
+  //   .regex(/^[a-zA-Z0-9]+$/, {
+  //     message: "Username should only contain letters and numbers",
+  //   }),
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters long" })
@@ -36,13 +45,14 @@ function Login() {
   const onSubmit = async (data) => {
     console.log(data);
     const { email, password } = data;
-    localStorage.setItem("registeredEmail", email);
     try {
-      await userAxiosInstance.post("/login/", { email, password });
+      const response = await userAxiosInstance.post("/login/", { email, password });
       // navigate('/otp_verification')
-      // toast.info('An OTP has sent to your registered email.')
+      toast.success("Successfully logged in");
+      console.log(response)
     } catch (error) {
-      const errorMessage = error.response?.data?.error || "Registration failed";
+      const errorMessage = error?.message || "Login failed";
+      console.error(errorMessage);
       toast.error(errorMessage);
     }
   };
@@ -79,14 +89,16 @@ function Login() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
               <div className="space-y-2">
-                <label className="text-sm text-gray-600">Email</label>
+                <label className="text-sm text-gray-600">email</label>
                 <input
                   {...register("email")}
                   type=""
                   className="w-full px-4 py-2 rounded-full border border-gray-200 bg-white"
                 />
                 {errors.email && (
-                  <span className="text-red-400">{errors.email.message}</span>
+                  <span className="text-red-400">
+                    {errors.email.message}
+                  </span>
                 )}
               </div>
 
@@ -138,7 +150,10 @@ function Login() {
             <div className="flex justify-between text-sm">
               <p className="text-gray-600">
                 Don't have any account?
-                <Link to="/register" className="text-blue-600 ml-1 hover:underline">
+                <Link
+                  to="/register"
+                  className="text-blue-600 ml-1 hover:underline"
+                >
                   Sign up
                 </Link>
               </p>

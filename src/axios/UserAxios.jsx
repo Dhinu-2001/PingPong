@@ -79,13 +79,13 @@ userAxiosInstance.interceptors.response.use(
           }
           else {
             console.error('Failed to refresh access token. Logging out.');
-            toast.warning('token refresh failed')
+            console.error('token refresh failed')
             // await handleLogout();
             return Promise.reject(error);
           }
         } catch (refreshError) {
           console.error('Error during token refresh:', refreshError);
-          toast.warning('token refresh failed')
+          console.error('token refresh failed')
           // await handleLogout();
           return Promise.reject(refreshError);
         }
@@ -93,9 +93,8 @@ userAxiosInstance.interceptors.response.use(
       }
       else {
         console.warn('No access token found or token is not valid. Logging out.');
-        toast.warning('token refresh failed')
+        console.error('token refresh failed')
         // await handleLogout();
-        console.warn('No access token found or token is not valid. Logging out.');
         return Promise.reject(error);
       }
 
