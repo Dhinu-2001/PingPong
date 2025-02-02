@@ -3,6 +3,7 @@ import { Search, Phone, MoreVertical, Paperclip, Mic, Send } from "lucide-react"
 import { ChatList } from "./ChatList";
 
 function ChatComponent() {
+  
   return (
     <div className="flex flex-1 min-w-0 m-4 ml-0 bg-white rounded-2xl">
       {/* Chat List */}

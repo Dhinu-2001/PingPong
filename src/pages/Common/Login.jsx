@@ -5,8 +5,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import userAxiosInstance from "../../Axios/UserAxios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { userLoginAction } from "../../redux/actions/userAction";
+import { useDispatch } from "react-redux";
 
 const schema = z.object({
   email: z
@@ -32,7 +34,8 @@ const schema = z.object({
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
-
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
@@ -46,12 +49,17 @@ function Login() {
     console.log(data);
     const { email, password } = data;
     try {
-      const response = await userAxiosInstance.post("/login/", { email, password });
+      // const response = await userAxiosInstance.post("/token/", { email, password });
+      const response = await dispatch(userLoginAction(data)).unwrap()
       // navigate('/otp_verification')
-      toast.success("Successfully logged in");
-      console.log(response)
+      if(response.success){
+        toast.success('Login successful!')
+      }
+      setTimeout(() => {
+        navigate('/home/chat')
+      }, 1500)
     } catch (error) {
-      const errorMessage = error?.message || "Login failed";
+      const errorMessage = error?.response?.data?.error || "Invalid username or password";
       console.error(errorMessage);
       toast.error(errorMessage);
     }
@@ -125,7 +133,7 @@ function Login() {
                 )}
               </div>
 
-              <button className="w-full py-2 px-4 rounded-full bg-[#f7f478] hover:bg-[#fffd7d] text-black">
+              <button  className="w-full py-2 px-4 rounded-full bg-[#f7f478] hover:bg-[#fffd7d] text-black" >
                 Submit
               </button>
 
