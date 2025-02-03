@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { PURGE } from "redux-persist";
-import { userLoginAction } from "../actions/userAction";
+import { userLoginAction, userRefreshAction } from "../actions/userAction";
 
 const initialState = {
   accessToken: null,
@@ -18,7 +18,8 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setNewToken: (state, action) => {
-      state.accessToken = action.payload.newAccessToken;
+      state.accessToken = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken;
     },
     setError: (state, action) => {
       state.error = action.payload;
@@ -56,6 +57,15 @@ const authSlice = createSlice({
       })
       .addCase(userLoginAction.rejected, (state, action) => {
         state.error = action.payload || "Login failed";
+      })
+      .addCase(userRefreshAction.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.accessToken = action.payload.userData.accessToken;
+          state.refreshToken = action.payload.userData.refreshToken;
+        }
+      })
+      .addCase(userRefreshAction.rejected, (state, action) => {
+        state.error = action.payload || "Access token refresh failed";
       });
   },
 });

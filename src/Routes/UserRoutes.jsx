@@ -18,6 +18,7 @@ function UserRoutes() {
 
       <Route path="/home" element={<Layout />}>
         <Route path="chat" element={<ChatComponent />} />
+        <Route path="chat/:reciever_id" element={<ChatComponent />} />
         <Route path="search_users" element={<SearchUsers />} />
       </Route>
     </Routes>

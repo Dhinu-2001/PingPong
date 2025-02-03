@@ -1,9 +1,103 @@
 import React from "react";
-import { Search, Phone, MoreVertical, Paperclip, Mic, Send } from "lucide-react"
+import {
+  Search,
+  Phone,
+  MoreVertical,
+  Paperclip,
+  Mic,
+  Send,
+} from "lucide-react";
 import { ChatList } from "./ChatList";
 
 function ChatComponent() {
-  
+  const state = store.getState();
+  const senderId = state.id;
+  const senderName = state.username ? state.username : "User";
+
+  const [receiverId, setReceiverId] = useState(null);
+  const [roomName, setRoomName] = useState(null);
+  const [recieverData, setRecieverData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const { reciever_id } = useParams();
+  console.log({ reciever_id });
+  const receiverid = Number(reciever_id);
+  console.log(receiverid);
+
+  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
+  const socketRef = React.useRef(null);
+
+  const fetchData = async () => {
+    try {
+      const response = await axiosInstance.get(`user/${receiverid}/`);
+      console.log("reciever data", response.data);
+      setRecieverData(response.data);
+      setLoading(false);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const callWebsocket = async () => {
+    try {
+      setReceiverId(receiverid);
+      const room_array = [senderId, receiverid];
+
+      room_array.sort((a, b) => a - b);
+
+      setRoomName(`chat_${room_array[0]}-${room_array[1]}`);
+      console.log("receiverid", receiverid, senderId);
+      console.log("roomName", roomName);
+
+      if (roomName) {
+        // Connect to WebSocket
+        socketRef.current = new WebSocket(
+          `wss://${VITE_notification_svc}/ws/chat/${roomName}/`
+        );
+
+        // Handle incoming messages
+        socketRef.current.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          setMessages((prev) => [...prev, data]);
+        };
+        return () => socketRef.current.close();
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    try {
+      if (receiverid) {
+        setLoading(true);
+        setMessages([]);
+        console.log("initail Loading", loading);
+        fetchData();
+        callWebsocket();
+      }
+    } catch (err) {
+      setError(err);
+      setLoading(false);
+    }
+  }, [roomName, receiverid]);
+
+  const sendMessage = () => {
+    const recieverName =
+      recieverData.username || recieverData.email.split("@")[0];
+    const payload = {
+      message,
+      senderName,
+      senderId,
+      recieverName,
+      receiverId,
+    };
+    socketRef.current.send(JSON.stringify(payload));
+    setMessage("");
+  };
+
   return (
     <div className="flex flex-1 min-w-0 m-4 ml-0 bg-white rounded-2xl">
       {/* Chat List */}

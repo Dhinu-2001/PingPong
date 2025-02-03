@@ -9,6 +9,7 @@ import {
     Settings,
     LogOut,
   } from "lucide-react";
+import { Link } from 'react-router-dom';
 
 function NavBar() {
   return (
@@ -21,15 +22,18 @@ function NavBar() {
           <button className="w-10 h-10 rounded-lg bg-gray-600/50 text-white flex items-center justify-center">
             <MessageSquare className="h-5 w-5" />
           </button>
+          <Link to='search_users'>
+          <button className="w-10 h-10 rounded-lg hover:bg-gray-800 text-gray-400 flex items-center justify-center">
+            <Users className="h-5 w-5" />
+          </button>
+          </Link>
           <button className="w-10 h-10 rounded-lg hover:bg-gray-800 text-gray-400 flex items-center justify-center relative">
             <Briefcase className="h-5 w-5" />
             <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center">
               4
             </span>
           </button>
-          <button className="w-10 h-10 rounded-lg hover:bg-gray-800 text-gray-400 flex items-center justify-center">
-            <Users className="h-5 w-5" />
-          </button>
+          
           <button className="w-10 h-10 rounded-lg hover:bg-gray-800 text-gray-400 flex items-center justify-center">
             <Newspaper className="h-5 w-5" />
           </button>
