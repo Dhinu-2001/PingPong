@@ -1,24 +1,62 @@
 import { Check } from "lucide-react"
+import { store } from "../../redux/Store";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+const env = import.meta.env;
+const WSbaseURL = env.VITE_WSbaseURL;
 
 export function ChatList() {
-  const chats = [
-    {
-      id: 1,
-      name: "Design chat",
-      lastMessage: "Jessie Rollins sent...",
-      time: "4m",
-      unread: 1,
-      isGroup: true,
-    },
-    {
-      id: 2,
-      name: "Osman Campos",
-      lastMessage: "You: Hey! We are read...",
-      time: "20m",
-      unread: 0,
-    },
-    // Add more chat items as needed
-  ]
+  const socketRef = React.useRef(null);
+    const state = store.getState()
+    const user_id = state.id
+    const [chats, setChats] = useState([]);
+    const navigate = useNavigate()
+
+    const handleNavigate = (chat) =>{
+        const recieverId = chat.room.user1 === user_id ? chat.room.user2 : chat.room.user1
+        navigate(`/home/chat/${recieverId}`)
+    }
+
+    useEffect(() => {
+        // Connect to WebSocket
+        socketRef.current = new WebSocket(`${WSbaseURL}/ws/chat-list/${user_id}/`);
+
+        // Handle incoming messages
+        socketRef.current.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            setChats((prev) => {
+                const prevChats = prev.filter(
+                    (chat) => chat.room.id !== data.room.id
+                );
+                return [...prevChats];
+            });
+            setChats((prev) => [data, ...prev]);
+            console.log('chatList', chats)
+        };
+        return () => socketRef.current.close();
+
+    }, [])  
+
+  // const chats = [
+  //   {
+  //     id: 1,
+  //     name: "Design chat",
+  //     lastMessage: "Jessie Rollins sent...",
+  //     time: "4m",
+  //     unread: 1,
+  //     isGroup: true,
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Osman Campos",
+  //     lastMessage: "You: Hey! We are read...",
+  //     time: "20m",
+  //     unread: 0,
+  //   },
+  //   // Add more chat items as needed
+  // ]
+
 
   return (
     <div className="flex-1 overflow-y-auto">

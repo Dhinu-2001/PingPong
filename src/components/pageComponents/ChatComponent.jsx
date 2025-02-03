@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Phone,
@@ -8,6 +8,12 @@ import {
   Send,
 } from "lucide-react";
 import { ChatList } from "./ChatList";
+import { store } from "../../redux/Store";
+import { useParams } from "react-router-dom";
+import userAxiosInstance from "../../Axios/UserAxios";
+
+const env = import.meta.env;
+const WSbaseURL = env.VITE_WSbaseURL;
 
 function ChatComponent() {
   const state = store.getState();
@@ -21,9 +27,7 @@ function ChatComponent() {
   const [error, setError] = useState(null);
 
   const { reciever_id } = useParams();
-  console.log({ reciever_id });
   const receiverid = Number(reciever_id);
-  console.log(receiverid);
 
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
@@ -31,9 +35,9 @@ function ChatComponent() {
 
   const fetchData = async () => {
     try {
-      const response = await axiosInstance.get(`user/${receiverid}/`);
-      console.log("reciever data", response.data);
-      setRecieverData(response.data);
+      const { data } = await userAxiosInstance.get(`user/${receiverid}/`);
+      console.log("reciever data", data);
+      setRecieverData(data);
       setLoading(false);
     } catch (err) {
       console.log(err);
@@ -53,9 +57,7 @@ function ChatComponent() {
 
       if (roomName) {
         // Connect to WebSocket
-        socketRef.current = new WebSocket(
-          `wss://${VITE_notification_svc}/ws/chat/${roomName}/`
-        );
+        socketRef.current = new WebSocket(`${WSbaseURL}/ws/chat/${roomName}/`);
 
         // Handle incoming messages
         socketRef.current.onmessage = (event) => {
@@ -98,6 +100,8 @@ function ChatComponent() {
     setMessage("");
   };
 
+  if (loading) return <h1>Loading</h1>;
+
   return (
     <div className="flex flex-1 min-w-0 m-4 ml-0 bg-white rounded-2xl">
       {/* Chat List */}
@@ -119,11 +123,22 @@ function ChatComponent() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Chat Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-xl font-semibold">Design chat</h2>
-            <span className="text-sm text-gray-400">23 members, 10 online</span>
+          <div className="flex item gap-4 w-full">
+            <img
+              src={recieverData.profile_picture}
+              alt="DP"
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
+            <div className="flex flex-col items-start space-x-4">
+              <h2 className="text-xl font-semibold">{recieverData.username}</h2>
+              <span className="text-sm text-gray-400">
+                {recieverData.email}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center space-x-4">
+          {/* <div className="flex items-center space-x-4">
             <button className="p-2 hover:bg-gray-800 rounded-full">
               <Search className="h-5 w-5" />
             </button>
@@ -133,20 +148,50 @@ function ChatComponent() {
             <button className="p-2 hover:bg-gray-800 rounded-full">
               <MoreVertical className="h-5 w-5" />
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {messages.map((msg, index) =>
+            msg.user_id === receiverId ? (
+              <div key={index} className="flex items-end space-x-2">
+                {/* <Avatar>
+                  <AvatarImage src="/placeholder-user.jpg" alt={msg.username} />
+                  <AvatarFallback>
+                    {msg.username?.[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar> */}
+                <div>
+                  <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                    <p className="text-sm text-black">{msg.message}</p>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {formatDate(msg.timestamp)}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div key={index} className="flex items-end justify-end space-x-2">
+                <div>
+                  <div className="p-2 rounded-lg bg-blue-500 text-white">
+                    <p className="text-sm">{msg.message}</p>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {formatDate(msg.timestamp)}
+                  </p>
+                </div>
+
+                {/* <Avatar>
+                  <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
+                  <AvatarFallback>U</AvatarFallback>
+                </Avatar> */}
+              </div>
+            )
+          )}
+
           {/* Message bubbles */}
-          <div className="flex items-start space-x-3">
-            <img
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-G8KybZ8c4ee4VwxmmTbUaI9LPJBAsu.png"
-              alt="Jasmin Lowery"
-              width={40}
-              height={40}
-              className="rounded-full"
-            />
+          {/* <div className="flex items-start space-x-3">
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-medium">Jasmin Lowery</span>
@@ -162,26 +207,26 @@ function ChatComponent() {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* More messages would go here */}
         </div>
 
         {/* Message Input */}
         <div className="p-4 border-t border-gray-800">
-          <div className="flex items-center space-x-4 bg-gray-800/50 rounded-lg px-4 py-2">
-            <button className="text-gray-400 hover:text-gray-300">
+          <div className="flex items-center space-x-4 rounded-lg px-4 py-2">
+            {/* <button className="text-gray-400 hover:text-gray-300">
               <Paperclip className="h-5 w-5" />
-            </button>
+            </button> */}
             <input
               type="text"
               placeholder="Your message"
-              className="flex-1 bg-transparent focus:outline-none text-sm"
+              className="flex-1 p-3 rounded-full border border-gray-200 pr-10 bg-white focus:outline-none text-sm"
             />
-            <button className="text-gray-400 hover:text-gray-300">
+            {/* <button className="text-gray-400 hover:text-gray-300">
               <Mic className="h-5 w-5" />
-            </button>
-            <button className="text-purple-500 hover:text-purple-400">
+            </button> */}
+            <button className="text-purple-black hover:text-purple-400" onClick={sendMessage}>
               <Send className="h-5 w-5" />
             </button>
           </div>
