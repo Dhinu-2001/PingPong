@@ -1,62 +1,75 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { PURGE } from "redux-persist";
+import { userLoginAction, userRefreshAction } from "../actions/userAction";
 
 const initialState = {
-    accessToken: null,
-    refreshToken: null,
-    id: null,
-    username: null,
-    email: null,
-    profile_picture: null,
-    role: null,
-    isAuthenticated: false,
-    loading: false,
-    error: null
-}
+  accessToken: null,
+  refreshToken: null,
+  id: null,
+  username: null,
+  email: null,
+  profile_picture: null,
+  isAuthenticated: false,
+  error: false,
+};
 
 const authSlice = createSlice({
-    name: 'auth',
-    initialState,
-    reducers: {
-        setAuthData(state, action) {
-            state.accessToken = action.payload.accessToken;
-            state.refreshToken = action.payload.refreshToken;
-            state.id = action.payload.id;
-            state.username = action.payload.username;
-            state.email = action.payload.email;
-            state.role = action.payload.role;
-            state.profile_picture = action.payload.profile_picture;
-            state.isAuthenticated = true;
-            state.error = null;
-        },
-        setNewToken:(state, action) =>{
-            state.accessToken = action.payload.newAccessToken;
-        },
-        setError: (state, action) => {
-            state.error = action.payload;
-            state.loading = false;
-        },
-        setLoading: (state, action) => {
-            state.loading = action.payload;
-        },
-        clearAuthData(state) {
-            state.accessToken = null;
-            state.refreshToken = null;
-            state.id = null;
-            state.username = null;
-            state.email = null;
-            state.role = null;
-            state.profile_picture = null;
-            state.isAuthenticated = false;
-            state.error = null;
-        },
+  name: "auth",
+  initialState,
+  reducers: {
+    setNewToken: (state, action) => {
+      state.accessToken = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken;
     },
-    extraReducers: (builder) => {
-        builder.addCase(PURGE, () => {
-            return initialState;
-        });
-    }
+    setError: (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    },
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+    },
+    clearAuthData(state) {
+      state.accessToken = null;
+      state.refreshToken = null;
+      state.id = null;
+      state.username = null;
+      state.email = null;
+      state.profile_picture = null;
+      state.isAuthenticated = false;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(PURGE, () => {
+        return initialState;
+      })
+      .addCase(userLoginAction.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.accessToken = action.payload.userData.accessToken;
+          state.refreshToken = action.payload.userData.refreshToken;
+          state.id = action.payload.userData.id;
+          state.username = action.payload.userData.username;
+          state.email = action.payload.userData.email;
+          state.profile_picture = action.payload.userData.profile_picture;
+          state.isAuthenticated = true;
+          state.error = false
+        }
+      })
+      .addCase(userLoginAction.rejected, (state, action) => {
+        state.error = action.payload || "Login failed";
+      })
+      .addCase(userRefreshAction.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.accessToken = action.payload.userData.accessToken;
+          state.refreshToken = action.payload.userData.refreshToken;
+        }
+      })
+      .addCase(userRefreshAction.rejected, (state, action) => {
+        state.error = action.payload || "Access token refresh failed";
+      });
+  },
 });
 
-export const { setAuthData, clearAuthData, setError, setLoading, setNewToken } = authSlice.actions;
+export const { setAuthData, clearAuthData, setError, setLoading, setNewToken } =
+  authSlice.actions;
 export default authSlice.reducer;

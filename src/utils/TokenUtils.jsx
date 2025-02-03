@@ -1,7 +1,7 @@
 import { store } from '../redux/Store';
 import { jwtDecode } from 'jwt-decode';
 import userAxiosInstance from '../Axios/UserAxios';
-import { setAuthData } from '../redux/auth/AuthSlice';
+import { setNewToken } from '../redux/auth/AuthSlice';
 
 // Regular utility functions for encryption/decryption
 export const encryptToken = (token) => {
@@ -45,28 +45,22 @@ export const refreshAccessToken = async (refreshToken) => {
   console.log('refreshToken before sending refreshing access', refreshToken)
 
   try {
-    const response = await userAxiosInstance.post('/token_refresh/', { refresh_token: refreshToken }, {
+    const response = await userAxiosInstance.post('/token/refresh/', { refresh: refreshToken }, {
       headers: {
         'Content-Type': 'application/json'
       }
     });
     console.log('new access token', response.data)
     if (response.status === 200) {
-      const newAccessToken = response.data.accessToken;
+      const newAccessToken = response.data.access;
       const encryptedNewAccessToken = encryptToken(newAccessToken)
-      const RefreshToken = response.data.refreshToken;
-      const encryptedRefreshToken = encryptToken(RefreshToken)
+      const refreshToken = response.data.refresh;
+      const encryptedRefreshToken = encryptToken(refreshToken)
 
       store.dispatch(
-        setAuthData({
+        setNewToken({
           accessToken: encryptedNewAccessToken,
           refreshToken: encryptedRefreshToken,
-          id: response.data.id,
-          username: response.data.username,
-          email: response.data.email,
-          role: response.data.role,
-          isAuthenticated: true,
-          error: null
         })
       );
 

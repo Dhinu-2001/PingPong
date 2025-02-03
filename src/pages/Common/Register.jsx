@@ -51,8 +51,8 @@ function Register() {
     localStorage.setItem('registeredEmail', email)
     try {
       await userAxiosInstance.post('/register/', { username, email, password });
-      navigate('/otp_verification')
-      toast.info('An OTP has sent to your registered email.')
+      navigate('/login')
+      toast.success('Successfully registered')
 
     } catch (error) {
       const errorMessage = error.response?.data?.error || 'Registration failed'
