@@ -11,6 +11,7 @@ import { ChatList } from "./ChatList";
 import { store } from "../../redux/Store";
 import { useParams } from "react-router-dom";
 import userAxiosInstance from "../../Axios/UserAxios";
+import { toast } from "sonner";
 
 const env = import.meta.env;
 const WSbaseURL = env.VITE_WSbaseURL;
@@ -25,6 +26,7 @@ function ChatComponent() {
   const [recieverData, setRecieverData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [chatStatus, setChatStatus] = useState(null);
 
   const { reciever_id } = useParams();
   const receiverid = Number(reciever_id);
@@ -35,17 +37,6 @@ function ChatComponent() {
 
   const fetchData = async () => {
     try {
-      const { data } = await userAxiosInstance.get(`user/${receiverid}/`);
-      console.log("reciever data", data);
-      setRecieverData(data);
-      setLoading(false);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const callWebsocket = async () => {
-    try {
       setReceiverId(receiverid);
       const room_array = [senderId, receiverid];
 
@@ -55,6 +46,19 @@ function ChatComponent() {
       console.log("receiverid", receiverid, senderId);
       console.log("roomName", roomName);
 
+      const response = await userAxiosInstance.get(`chat/user/${receiverid}/`);
+      console.log("reciever data", response.data);
+      setRecieverData(response.data.user_data);
+      setChatStatus(response.data.chat_room_status);
+      setLoading(false);
+      console.log("chatStatus", response.data.chat_room_status);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const callWebsocket = async () => {
+    try {
       if (roomName) {
         // Connect to WebSocket
         socketRef.current = new WebSocket(`${WSbaseURL}/ws/chat/${roomName}/`);
@@ -78,7 +82,9 @@ function ChatComponent() {
         setMessages([]);
         console.log("initail Loading", loading);
         fetchData();
-        callWebsocket();
+        if (chatStatus === "exist") {
+          callWebsocket();
+        }
       }
     } catch (err) {
       setError(err);
@@ -98,6 +104,48 @@ function ChatComponent() {
     };
     socketRef.current.send(JSON.stringify(payload));
     setMessage("");
+  };
+
+  const handleDecisionButton = async (decision) => {
+    try {
+      const response = await userAxiosInstance.post("chat/decision-interest/", {
+        decision,
+        roomName,
+      });
+      console.log("response", response);
+      if (response.status == 200) {
+        toast.success(`${decision} interest request`);
+        if(decision == "Accepted"){
+          setChatStatus('exist');
+          callWebsocket()
+        } else if(decision == "Declined"){
+          setChatStatus('not exist');
+        }
+      }
+    } catch(err) {
+      console.error(err)
+      toast.error('Failed to send response.')
+    }
+  };
+
+  const handleRequestButton = async () => {
+    const status = "Pending";
+    try {
+      const response = await userAxiosInstance.post(`chat/send-interest/`, {
+        senderId,
+        receiverId,
+        roomName,
+        status,
+      });
+
+      console.log("response", response);
+      if (response.status == 201) {
+        setChatStatus("Pending");
+        toast.success("Interest request sended!");
+      }
+    } catch (err) {
+      toast.error("Interest request failed to sended!");
+    }
   };
 
   if (loading) return <h1>Loading</h1>;
@@ -151,47 +199,95 @@ function ChatComponent() {
           </div> */}
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {messages.map((msg, index) =>
-            msg.user_id === receiverId ? (
-              <div key={index} className="flex items-end space-x-2">
-                {/* <Avatar>
+        {chatStatus === "not exist" && (
+          <div className="flex-1 flex flex-col justify-center items-center gap-4">
+            <h2 className="text-xl font-bold">
+              Send an interest request to {recieverData.username}.
+            </h2>
+            <button
+              onClick={handleRequestButton}
+              className="py-2 px-4 rounded-full bg-[#f7f478] hover:bg-[#fffd7d] text-black font-medium"
+            >
+              Send Request
+            </button>
+          </div>
+        )}
+
+        {chatStatus === "Pending" && (
+          <div className="flex-1 flex flex-col justify-center items-center gap-4">
+            <h2 className="text-xl font-bold">
+              Wait for {recieverData.username} to accept your interest request.
+            </h2>
+          </div>
+        )}
+
+        {chatStatus === "Decision" && (
+          <div className="flex-1 flex flex-col justify-center items-center gap-4">
+            <h2 className="text-xl font-bold">
+              {recieverData.username} has sent an interest request to you.
+            </h2>
+            <div className="space-x-3">
+              <button
+                onClick={() => handleDecisionButton("Accepted")}
+                className="py-2 px-4 rounded-full bg-[#f7f478] hover:bg-[#fffd7d] text-black font-medium"
+              >
+                Accept Request
+              </button>
+              <button
+                onClick={() => handleDecisionButton("Declined")}
+                className="py-2 px-4 rounded-full bg-[#f7f478] hover:bg-[#fffd7d] text-black font-medium"
+              >
+                Reject Request
+              </button>
+            </div>
+          </div>
+        )}
+
+        {chatStatus === "exist" && (
+          <>
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {messages.map((msg, index) =>
+                msg.user_id === receiverId ? (
+                  <div key={index} className="flex items-end space-x-2">
+                    {/* <Avatar>
                   <AvatarImage src="/placeholder-user.jpg" alt={msg.username} />
                   <AvatarFallback>
                     {msg.username?.[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar> */}
-                <div>
-                  <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                    <p className="text-sm text-black">{msg.message}</p>
+                    <div>
+                      <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                        <p className="text-sm text-black">{msg.message}</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {formatDate(msg.timestamp)}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    {formatDate(msg.timestamp)}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div key={index} className="flex items-end justify-end space-x-2">
-                <div>
-                  <div className="p-2 rounded-lg bg-blue-500 text-white">
-                    <p className="text-sm">{msg.message}</p>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {formatDate(msg.timestamp)}
-                  </p>
-                </div>
+                ) : (
+                  <div
+                    key={index}
+                    className="flex items-end justify-end space-x-2"
+                  >
+                    <div>
+                      <div className="p-2 rounded-lg bg-blue-500 text-white">
+                        <p className="text-sm">{msg.message}</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {formatDate(msg.timestamp)}
+                      </p>
+                    </div>
 
-                {/* <Avatar>
+                    {/* <Avatar>
                   <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar> */}
-              </div>
-            )
-          )}
+                  </div>
+                )
+              )}
 
-          {/* Message bubbles */}
-          {/* <div className="flex items-start space-x-3">
+              {/* Message bubbles */}
+              {/* <div className="flex items-start space-x-3">
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-medium">Jasmin Lowery</span>
@@ -209,28 +305,33 @@ function ChatComponent() {
             </div>
           </div> */}
 
-          {/* More messages would go here */}
-        </div>
+              {/* More messages would go here */}
+            </div>
 
-        {/* Message Input */}
-        <div className="p-4 border-t border-gray-800">
-          <div className="flex items-center space-x-4 rounded-lg px-4 py-2">
-            {/* <button className="text-gray-400 hover:text-gray-300">
+            {/* Message Input */}
+            <div className="p-4 border-t border-gray-800">
+              <div className="flex items-center space-x-4 rounded-lg px-4 py-2">
+                {/* <button className="text-gray-400 hover:text-gray-300">
               <Paperclip className="h-5 w-5" />
             </button> */}
-            <input
-              type="text"
-              placeholder="Your message"
-              className="flex-1 p-3 rounded-full border border-gray-200 pr-10 bg-white focus:outline-none text-sm"
-            />
-            {/* <button className="text-gray-400 hover:text-gray-300">
+                <input
+                  type="text"
+                  placeholder="Your message"
+                  className="flex-1 p-3 rounded-full border border-gray-200 pr-10 bg-white focus:outline-none text-sm"
+                />
+                {/* <button className="text-gray-400 hover:text-gray-300">
               <Mic className="h-5 w-5" />
             </button> */}
-            <button className="text-purple-black hover:text-purple-400" onClick={sendMessage}>
-              <Send className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
+                <button
+                  className="text-purple-black hover:text-purple-400"
+                  onClick={sendMessage}
+                >
+                  <Send className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -17,26 +17,26 @@ export function ChatList() {
         navigate(`/home/chat/${recieverId}`)
     }
 
-    useEffect(() => {
-        // Connect to WebSocket
-        socketRef.current = new WebSocket(`${WSbaseURL}/ws/chat-list/${user_id}/`);
+    // useEffect(() => {
+    //     // Connect to WebSocket
+    //     socketRef.current = new WebSocket(`${WSbaseURL}/ws/chat-list/${user_id}/`);
 
-        // Handle incoming messages
-        socketRef.current.onmessage = (event) => {
-            const data = JSON.parse(event.data);
+    //     // Handle incoming messages
+    //     socketRef.current.onmessage = (event) => {
+    //         const data = JSON.parse(event.data);
 
-            setChats((prev) => {
-                const prevChats = prev.filter(
-                    (chat) => chat.room.id !== data.room.id
-                );
-                return [...prevChats];
-            });
-            setChats((prev) => [data, ...prev]);
-            console.log('chatList', chats)
-        };
-        return () => socketRef.current.close();
+    //         setChats((prev) => {
+    //             const prevChats = prev.filter(
+    //                 (chat) => chat.room.id !== data.room.id
+    //             );
+    //             return [...prevChats];
+    //         });
+    //         setChats((prev) => [data, ...prev]);
+    //         console.log('chatList', chats)
+    //     };
+    //     return () => socketRef.current.close();
 
-    }, [])  
+    // }, [])  
 
   // const chats = [
   //   {
