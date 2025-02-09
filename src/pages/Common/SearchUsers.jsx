@@ -64,17 +64,17 @@ export default function SearchUsers() {
       </header> */}
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="md:col-span-1 space-y-6">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="font-semibold mb-4">Search</h2>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute lg:left-3 top-1/2 z-10 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search users..."
-                  className="pl-10"
+                  className="lg:pl-10 pl-4"
                 />
               </div>
             </div>
@@ -119,7 +119,7 @@ export default function SearchUsers() {
           </div>
 
           {/* Search Results */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="md:col-span-3 space-y-6">
             {/* Filters */}
 
             {users.length === 0 ? (
@@ -136,13 +136,13 @@ export default function SearchUsers() {
                         className="bg-white rounded-lg shadow-sm p-6"
                       >
                         <div className="flex items-start gap-4">
-                          <img
+                          {/* <img
                             src={user.profile_picture || "/placeholder.svg"}
                             alt={user.username}
                             width={64}
                             height={64}
                             className="rounded-full"
-                          />
+                          /> */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
                               <div>
@@ -190,12 +190,12 @@ export default function SearchUsers() {
                   ))}
                 </div>
 
-                <div className="text-center">
+                {/* <div className="text-center">
                   <button variant="outline" className="text-sm">
                     Load More
                     <ChevronDown className="w-4 h-4 ml-2" />
                   </button>
-                </div>
+                </div> */}
               </>
             )}
           </div>
