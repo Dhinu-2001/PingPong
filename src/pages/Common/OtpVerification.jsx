@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import userAxiosInstance from "../../Axios/UserAxios";
+import userAxiosInstance from "../../axios/UserAxios";
 
 const OtpVerification = () => {
   const OTP_LENGTH = 6;

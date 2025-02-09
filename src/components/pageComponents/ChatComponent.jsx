@@ -11,7 +11,7 @@ import {
 import { ChatList } from "./ChatList";
 import { store } from "../../redux/Store";
 import { useParams } from "react-router-dom";
-import userAxiosInstance from "../../Axios/UserAxios";
+import userAxiosInstance from "../../axios/UserAxios";
 import { toast } from "sonner";
 import { format } from "date-fns";
 

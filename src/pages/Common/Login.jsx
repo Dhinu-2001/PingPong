@@ -4,7 +4,6 @@ import { Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import userAxiosInstance from "../../Axios/UserAxios";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { userLoginAction } from "../../redux/actions/userAction";

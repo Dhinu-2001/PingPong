@@ -1,5 +1,5 @@
 import { createAsyncThunk, isRejectedWithValue } from "@reduxjs/toolkit";
-import userAxiosInstance from "../../Axios/UserAxios";
+import userAxiosInstance from "../../axios/UserAxios";
 import { toast } from "sonner";
 import { encryptToken } from "../../utils/TokenUtils";
 

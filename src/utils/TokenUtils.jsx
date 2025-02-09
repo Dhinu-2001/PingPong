@@ -1,6 +1,6 @@
 import { store } from '../redux/Store';
 import { jwtDecode } from 'jwt-decode';
-import userAxiosInstance from '../Axios/UserAxios';
+import userAxiosInstance from '../axios/UserAxios';
 import { setNewToken } from '../redux/auth/AuthSlice';
 
 // Regular utility functions for encryption/decryption
