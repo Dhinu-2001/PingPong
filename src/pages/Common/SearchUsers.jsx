@@ -9,7 +9,7 @@ import {
   Star,
   ChevronDown,
 } from "lucide-react";
-import userAxiosInstance from "../../Axios/UserAxios";
+import userAxiosInstance from "../../axios/UserAxios";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 // import Image from "next/image"
